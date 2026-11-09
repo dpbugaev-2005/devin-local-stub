@@ -8,8 +8,12 @@ from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
 from pptx.oxml.ns import qn
 from pptx.util import Emu, Inches, Pt
 from lxml import etree
+import math
 
-OUT = Path(__file__).resolve().parents[1] / "invest_committee_slide.pptx"
+ROOT = Path(__file__).resolve().parents[1]
+OUT = ROOT / "invest_committee_slide.pptx"
+OUT_V2 = ROOT / "invest_committee_slide_v2.pptx"
+ASSETS = ROOT / "assets"
 
 NAVY = RGBColor(0x0B, 0x2A, 0x4A)
 BLUE = RGBColor(0x00, 0x5B, 0xAA)
@@ -243,6 +247,123 @@ def slide_development(prs):
     return s
 
 
+# ---------------------------------------------------------------- slide v2 (layout of the source slide)
+def chip(slide, x, y, w, h, label, size=10):
+    c = rect(slide, x, y, w, h, NAVY, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.18)
+    tf = c.text_frame
+    tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = 0
+    tf.vertical_anchor = MSO_ANCHOR.MIDDLE
+    fill_paras(tf, [p([(line, size, True, WHITE)], align=PP_ALIGN.CENTER) for line in label.split("\n")])
+    return c
+
+
+def soft_card(slide, x, y, w, h, title, body, top_pad=Inches(0.15), bullets=True, size=12):
+    rect(slide, x, y, w, h, RGBColor(0xF5, 0xF8, 0xFC), LINE, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.08)
+    text(slide, x + Inches(0.2), y + top_pad, w - Inches(0.4), Inches(0.55),
+         [p([(title, 13, True, NAVY)], align=PP_ALIGN.CENTER)], anchor=MSO_ANCHOR.MIDDLE)
+    paras = []
+    for b in body:
+        runs = [(b[0], size, True, BLUE), (b[1], size, False, NAVY)] if isinstance(b, tuple) \
+            else [(b, size, False, NAVY)]
+        paras.append(p(runs, bullet=bullets, bullet_char="➢", bullet_indent=16, space_after=2))
+    text(slide, x + Inches(0.2), y + top_pad + Inches(0.58), w - Inches(0.35),
+         h - top_pad - Inches(0.65), paras)
+
+
+def picture(slide, name, x, y, w=None, h=None):
+    return slide.shapes.add_picture(str(ASSETS / name), x, y, w, h)
+
+
+def slide_original_layout(prs):
+    s = prs.slides.add_slide(prs.slide_layouts[6])
+    text(s, Inches(0.4), Inches(0.25), Inches(9.6), Inches(0.85), [
+        p([("АО «Изотоп» — центр компетенций полного жизненного цикла "
+            "РФЛП и медицинских изделий, содержащих РВ", 22, True, NAVY)], line_spacing=0.95)])
+    picture(s, "rosatom.png", Inches(10.35), Inches(0.33), w=Inches(2.6))
+    text(s, Inches(0.4), Inches(1.08), Inches(12.5), Inches(0.5), [
+        p([("Обеспечение 100% суверенитета в ядерной медицине, повышение доступности "
+            "высокотехнологичной помощи и увеличение продолжительности жизни граждан",
+            13, True, BLUE)])])
+    text(s, Inches(0.4), Inches(1.6), Inches(12.5), Inches(0.5), [
+        p([("Проект развития: площадка АО «Изотоп» дополняет предприятия Научного дивизиона Росатома,",
+            12, True, NAVY)], align=PP_ALIGN.CENTER),
+        p([("снимает с них дополнительную нагрузку и берёт на себя производство и рыночность",
+            12, True, NAVY)], align=PP_ALIGN.CENTER),
+    ], margin=0)
+
+    # left column
+    lx, lw = Inches(0.3), Inches(3.7)
+    soft_card(s, lx, Inches(2.3), lw, Inches(2.2), "Госзаказ, ликвидация дефицита\nи опережающий R&D", [
+        "Анализ потребностей рынка",
+        "Разработка и проектирование (институты Научного дивизиона)",
+        "Проектирование сквозного жизненного цикла",
+    ], size=11.5)
+    chip(s, lx, Inches(4.25), Inches(1.0), Inches(0.42), "GLP")
+    soft_card(s, lx, Inches(4.8), lw, Inches(1.85), "Оптимизация и экспорт", [
+        "Быстрая модернизация продуктовых линеек",
+        "Выход на рынки дружественных стран",
+        "Повышение срока и качества жизни",
+    ], top_pad=Inches(0.12))
+
+    # right column
+    rx, rw = Inches(9.33), Inches(3.7)
+    soft_card(s, rx, Inches(2.5), rw, Inches(2.5), "Производство и логистика", [
+        ("Горячая часть: ", "производство РФЛП, загрузка РВ в изделия"),
+        "Выпуск нерадиоактивных частей",
+        "Переоборудование и валидация спецтранспорта (РВ и темп. режим)",
+        "Упаковочные комплекты типа А для РФЛП",
+        "АВТО/АВИА доставка",
+    ], top_pad=Inches(0.25), size=11)
+    cw_ = int((rw - Inches(0.24)) / 4)
+    for i, lab in enumerate(["GMP", "ISO\n13485", "GDP", "ОСПОРБ\n/ НРБ"]):
+        chip(s, rx + i * (cw_ + Inches(0.08)), Inches(2.22), cw_, Inches(0.46), lab, size=9.5)
+    soft_card(s, rx, Inches(5.25), rw, Inches(1.4), "Клиническое внедрение и рынок", [
+        "Обратная связь, мониторинг эффективности, фармаконадзор",
+        "Продажи и сервис: единое рыночное окно",
+    ], top_pad=Inches(0.12), size=11)
+    chip(s, rx + rw // 2 - Inches(0.5), Inches(5.07), Inches(1.0), Inches(0.38), "GLP")
+
+    # PDSA circle
+    cx, cy, r = Inches(6.66), Inches(4.85), Inches(1.75)
+    ring = rect(s, cx - r, cy - r, 2 * r, 2 * r, WHITE, shape=MSO_SHAPE.OVAL)
+    ring.line.color.rgb = NAVY
+    ring.line.width = Pt(2.25)
+    pw, ph = Inches(2.3), Inches(1.71)
+    picture(s, "photo.png", cx - pw // 2, cy - ph // 2, w=pw, h=ph)
+    for letter, dx, dy in (("P", 0, -1.33), ("D", 1.45, 0), ("S", 0, 1.33), ("A", -1.45, 0)):
+        text(s, cx + Inches(dx) - Inches(0.25), cy + Inches(dy) - Inches(0.25), Inches(0.5), Inches(0.5),
+             [p([(letter, 26, True, NAVY)], align=PP_ALIGN.CENTER)], anchor=MSO_ANCHOR.MIDDLE, margin=0)
+    aw, ah = Inches(0.95), Inches(0.42)
+    for theta in (225, 315, 45, 135):
+        t = math.radians(theta)
+        ax = int(cx + Inches(1.42) * math.cos(t))
+        ay = int(cy + Inches(1.42) * math.sin(t))
+        a = rect(s, ax - aw // 2, ay - ah // 2, aw, ah, RGBColor(0x1F, 0x73, 0xC8), NAVY,
+                 shape=MSO_SHAPE.RIGHT_ARROW)
+        a.rotation = (theta + 90) % 360
+    picture(s, "lab.png", cx - Inches(0.28), Inches(2.18), w=Inches(0.56))
+    text(s, cx - Inches(1.5), Inches(2.75), Inches(3.0), Inches(0.3),
+         [p([("Площадка АО «Изотоп»", 13, False, NAVY)], align=PP_ALIGN.CENTER)], margin=0)
+
+    # institutes of the Science division around the circle
+    for name, x, y, w in (("nifhi.png", 4.1, 3.0, 1.25), ("niitfa.png", 8.0, 3.0, 1.25),
+                          ("rad.png", 4.12, 4.2, 0.72), ("fei.png", 8.62, 4.3, 0.56),
+                          ("niiar.png", 4.6, 5.95, 0.52), ("irm.png", 8.2, 5.95, 0.52)):
+        picture(s, name, Inches(x), Inches(y), w=Inches(w))
+
+    # bottom bar
+    by, bh = Inches(6.8), Inches(0.52)
+    rect(s, Inches(0.9), by, Inches(11.6), bh, RGBColor(0xDC, 0xE8, 0xF5),
+         shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.5)
+    ex = rect(s, Inches(0.55), by - Inches(0.08), Inches(0.68), Inches(0.68), NAVY, shape=MSO_SHAPE.OVAL)
+    fill_paras(ex.text_frame, [p([("!", 24, True, WHITE)], align=PP_ALIGN.CENTER)])
+    ex.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
+    text(s, Inches(1.4), by, Inches(10.9), bh, [
+        p([("Инфраструктурный фундамент для взрывного роста ядерной медицины", 16, True,
+            RGBColor(0x3A, 0x3F, 0x47))], align=PP_ALIGN.CENTER)], anchor=MSO_ANCHOR.MIDDLE)
+    return s
+
+
 def main():
     prs = Presentation()
     prs.slide_width, prs.slide_height = SLIDE_W, SLIDE_H
@@ -251,6 +372,13 @@ def main():
     slide_development(prs)
     prs.save(OUT)
     print(OUT)
+
+    prs = Presentation()
+    prs.slide_width, prs.slide_height = SLIDE_W, SLIDE_H
+    prs.core_properties.title = PROJECT + " (вариант 2)"
+    slide_original_layout(prs)
+    prs.save(OUT_V2)
+    print(OUT_V2)
 
 
 if __name__ == "__main__":
