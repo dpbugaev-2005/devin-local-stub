@@ -1,4 +1,4 @@
-"""Генерация invest_committee_slide.pptx (python-pptx): АО «Изотоп», ИК Росатома."""
+"""Генерация invest_committee_slide.pptx (python-pptx): проект развития площадки АО «Изотоп»."""
 from pathlib import Path
 
 from pptx import Presentation
@@ -21,7 +21,7 @@ WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 FONT = "Arial"
 
 SLIDE_W, SLIDE_H = Inches(13.333), Inches(7.5)
-PROJECT = "АО «Изотоп» — национальный центр компетенций ядерной медицины"
+PROJECT = "Проект развития площадки АО «Изотоп»"
 
 
 def _font(run, size, bold=False, color=NAVY, italic=False):
@@ -100,25 +100,22 @@ def p(runs, **kw):
     return d
 
 
-def header(slide, title, subtitle=None, num=None):
+def header(slide, title, subtitle=None, num=None, title_size=26, title_h=Inches(0.6)):
     rect(slide, 0, 0, SLIDE_W, Inches(0.12), NAVY)
     rect(slide, 0, Inches(0.12), Inches(2.2), Inches(0.05), MID)
     text(slide, Inches(10.6), Inches(0.3), Inches(2.35), Inches(0.5),
          [p([("РОСАТОМ", 20, True, NAVY)], align=PP_ALIGN.RIGHT)], anchor=MSO_ANCHOR.MIDDLE)
     text(slide, Inches(10.6), Inches(0.75), Inches(2.35), Inches(0.3),
          [p([("АО «Изотоп»", 11, False, GREY)], align=PP_ALIGN.RIGHT)])
-    long_title = len(title) > 70
-    title_h = Inches(1.12) if long_title else Inches(0.6)
-    text(slide, Inches(0.45), Inches(0.3), Inches(10.1), title_h,
-         [p([(title, 22 if long_title else 26, True, NAVY)], line_spacing=0.95)],
-         anchor=MSO_ANCHOR.TOP)
+    text(slide, Inches(0.45), Inches(0.28), Inches(10.1), title_h,
+         [p([(title, title_size, True, NAVY)], line_spacing=0.95)], anchor=MSO_ANCHOR.TOP)
     if subtitle:
-        text(slide, Inches(0.45), Inches(0.35) + title_h, Inches(10.1), Inches(0.4),
-             [p([(subtitle, 13 if long_title else 14, False, BLUE)])])
+        text(slide, Inches(0.45), Inches(0.3) + title_h, Inches(10.1), Inches(0.35),
+             [p([(subtitle, 13, False, BLUE)])])
     # footer
     rect(slide, Inches(0.45), Inches(7.05), Inches(12.43), Emu(9525), LINE)
     text(slide, Inches(0.45), Inches(7.08), Inches(10), Inches(0.3),
-         [p([("Инвестиционный комитет Госкорпорации «Росатом»  ·  " + PROJECT, 9, False, GREY)])])
+         [p([("Госкорпорация «Росатом»  ·  " + PROJECT, 9, False, GREY)])])
     if num is not None:
         text(slide, Inches(12.2), Inches(7.08), Inches(0.68), Inches(0.3),
              [p([(str(num), 9, True, NAVY)], align=PP_ALIGN.RIGHT)])
@@ -129,230 +126,119 @@ def section_label(slide, x, y, w, label):
     rect(slide, x, y + Inches(0.36), w, Pt(1.5), BLUE)
 
 
-# ---------------------------------------------------------------- slide 1
-def slide_strategy(prs):
+# ---------------------------------------------------------------- slide
+def card(slide, x, y, w, h, title, bullets, size=11):
+    rect(slide, x, y, w, h, WHITE, LINE)
+    rect(slide, x, y, w, Inches(0.42), NAVY)
+    text(slide, x + Inches(0.15), y, w - Inches(0.3), Inches(0.42),
+         [p([(title, 13, True, WHITE)])], anchor=MSO_ANCHOR.MIDDLE)
+    text(slide, x + Inches(0.12), y + Inches(0.5), w - Inches(0.24), h - Inches(0.55),
+         [p([(b, size, False, NAVY)], bullet=True, space_after=3) for b in bullets])
+
+
+def flow_box(slide, x, y, w, h, kicker, title, body, dark=False, footer=None):
+    fill, fg, sub = (NAVY, WHITE, RGBColor(0x8F, 0xB8, 0xE6)) if dark else (LIGHT, NAVY, BLUE)
+    rect(slide, x, y, w, h, fill, None if dark else LINE)
+    paras = [
+        p([(kicker.upper(), 9.5, True, sub)], space_after=1),
+        p([(title, 14, True, fg)], space_after=3),
+        p([(body, 11, False, fg)], line_spacing=1.0),
+    ]
+    if footer:
+        paras.append(p([(footer, 9, True, sub)], space_before=4))
+    text(slide, x + Inches(0.15), y + Inches(0.05), w - Inches(0.3), h - Inches(0.1), paras,
+         anchor=MSO_ANCHOR.MIDDLE)
+
+
+def slide_development(prs):
     s = prs.slides.add_slide(prs.slide_layouts[6])
     header(
         s,
-        "АО «Изотоп» — национальный центр компетенций ядерной медицины: "
-        "100% суверенитет РФП к 20XX и выход на экспортные рынки $X млрд",
-        "Полный жизненный цикл радиофармпрепаратов и медизделий с РВ — "
-        "от НИОКР до клинического применения и экспорта",
-        num=1,
+        "Проект развития: площадка АО «Изотоп» — производство и рынок "
+        "для Научного дивизиона Росатома",
+        "Концепция. Количественные параметры определяются на этапе ТЭО",
+        title_size=22, title_h=Inches(0.8),
     )
-    section_label(s, Inches(0.45), Inches(2.05), Inches(12.43), "Стратегическая значимость")
+    L, W = Inches(0.45), Inches(12.43)
 
-    cards = [
-        ("01", "Суверенитет", "X% → 100%",
-         "доля отечественных РФП в онкологии РФ — с X% до 100% к 20XX"),
-        ("02", "Здоровье нации", "+N тыс. пациентов / год",
-         "ПЭТ/КТ-диагностики и радионуклидной терапии; вклад в цель "
-         "ожидаемой продолжительности жизни 78+ лет к 2030"),
-        ("03", "Позиция Росатома", "Топ-3 мирового рынка",
-         "изотопной продукции; экспорт в N стран ЕАЭС, БРИКС, Азии, Африки"),
-    ]
-    x0, y0, gap = Inches(0.45), Inches(2.65), Inches(0.28)
-    w = int((Inches(12.43) - 2 * gap) / 3)
-    h = Inches(3.2)
-    for i, (n, ttl, metric, body) in enumerate(cards):
-        x = x0 + i * (w + gap)
-        rect(s, x, y0, w, h, WHITE, LINE)
-        rect(s, x, y0, w, Inches(0.75), NAVY)
-        text(s, x + Inches(0.2), y0, Inches(0.7), Inches(0.75),
-             [p([(n, 22, True, RGBColor(0x8F, 0xB8, 0xE6))])], anchor=MSO_ANCHOR.MIDDLE)
-        text(s, x + Inches(0.85), y0, w - Inches(1.0), Inches(0.75),
-             [p([(ttl, 17, True, WHITE)])], anchor=MSO_ANCHOR.MIDDLE)
-        text(s, x + Inches(0.25), y0 + Inches(0.95), w - Inches(0.5), Inches(0.75),
-             [p([(metric, 22, True, BLUE)])], anchor=MSO_ANCHOR.MIDDLE)
-        rect(s, x + Inches(0.25), y0 + Inches(1.78), Inches(0.6), Pt(3), MID)
-        text(s, x + Inches(0.25), y0 + Inches(1.95), w - Inches(0.5), Inches(1.2),
-             [p([(body, 13.5, False, NAVY)], line_spacing=1.05)])
-
-    # nat. projects footnote
-    fy = Inches(6.12)
-    rect(s, Inches(0.45), fy, Inches(12.43), Inches(0.78), LIGHT)
-    rect(s, Inches(0.45), fy, Inches(0.09), Inches(0.78), BLUE)
-    text(s, Inches(0.7), fy, Inches(12.1), Inches(0.78), [
-        p([("Соответствие госприоритетам: ", 12, True, NAVY),
-           ("национальные проекты «Здравоохранение», «Наука и университеты»; "
-            "Стратегия развития медицинской промышленности РФ до 2030 года", 12, False, NAVY)]),
+    # идея проекта
+    iy, ih = Inches(1.42), Inches(0.6)
+    rect(s, L, iy, W, ih, LIGHT)
+    rect(s, L, iy, Inches(0.09), ih, BLUE)
+    text(s, L + Inches(0.25), iy, W - Inches(0.4), ih, [
+        p([("Идея: ", 12, True, BLUE),
+           ("разместить на площадке АО «Изотоп» производства, дополняющие предприятия Научного "
+            "дивизиона: институты концентрируются на НИОКР и наработке радионуклидов, "
+            "«Изотоп» снимает с них серийную и непрофильную нагрузку и берёт на себя рыночную функцию.",
+            12, False, NAVY)]),
     ], anchor=MSO_ANCHOR.MIDDLE)
-    return s
 
-
-# ---------------------------------------------------------------- slide 2
-def _set_block_arc(shape, start_deg, end_deg, thickness=0.22):
-    gd = shape._element.spPr.find(qn("a:prstGeom")).find(qn("a:avLst"))
-    for el in list(gd):
-        gd.remove(el)
-    for name, val in (("adj1", int(start_deg * 60000)), ("adj2", int(end_deg * 60000)),
-                      ("adj3", int(thickness * 100000))):
-        g = etree.SubElement(gd, qn("a:gd"))
-        g.set("name", name)
-        g.set("fmla", f"val {val}")
-
-
-def slide_pdsa(prs):
-    s = prs.slides.add_slide(prs.slide_layouts[6])
-    header(s, "Контур жизненного цикла РФП: цикл PDSA",
-           "От госзаказа и НИОКР до клинического применения, непрерывного улучшения и экспорта", num=2)
-
-    quads = [
-        ("P", "PLAN", "Госзаказ и R&D", [
-            "Техзадания на НИОКР по приоритетам Минздрава и Росатома",
-            "Pipeline N молекул: Lu-177, Ac-225, Ga-68, F-18, Tc-99m, I-131",
-            "Научные площадки: НИФХИ, НИИТФА, ФЭИ, ИРМ, НИИАР, Радиевый институт",
-        ]),
-        ("D", "DO", "Производство и логистика", [
-            "GMP-завод полного цикла: N тыс. доз/год, запуск 20XX",
-            "Собственная изотопная база: реакторы + циклотроны",
-            "Логистика с учётом периода полураспада; покрытие N% территории РФ",
-        ]),
-        ("A", "ACT", "Оптимизация и экспорт", [
-            "Непрерывное улучшение по данным real-world evidence",
-            "Экспорт через канал зарубежных проектов Росатома",
-            "Цель — $X млн/год к 20XX",
-        ]),
-        ("S", "STUDY", "Клиническое внедрение", [
-            "Регистрация N препаратов до 20XX",
-            "Сеть из N региональных центров ядерной медицины",
-            "Клинические протоколы с НМИЦ онкологии им. Блохина / Герцена",
-        ]),
-    ]
-    top, row_h, row_gap = Inches(1.6), Inches(2.6), Inches(0.2)
-    card_w = Inches(4.95)
-    xs = [Inches(0.45), SLIDE_W - Inches(0.45) - card_w]
-    for idx, (letter, en, ru, bullets) in enumerate(quads):
-        col, row = idx % 2, idx // 2
-        x = xs[col]
-        y = top + row * (row_h + row_gap)
-        rect(s, x, y, card_w, row_h, WHITE, LINE)
-        badge_x = x if col == 0 else x + card_w - Inches(0.75)
-        rect(s, badge_x, y, Inches(0.75), row_h, NAVY)
-        text(s, badge_x, y + Inches(0.1), Inches(0.75), Inches(0.8),
-             [p([(letter, 32, True, WHITE)], align=PP_ALIGN.CENTER)])
-        tx = x + Inches(0.95) if col == 0 else x + Inches(0.2)
-        tw = card_w - Inches(1.15)
-        text(s, tx, y + Inches(0.12), tw, Inches(0.45),
-             [p([(en + " — ", 15, True, BLUE), (ru, 15, True, NAVY)])], anchor=MSO_ANCHOR.MIDDLE)
-        rect(s, tx + Inches(0.05), y + Inches(0.62), tw - Inches(0.1), Pt(1), LINE)
-        text(s, tx, y + Inches(0.72), tw, row_h - Inches(0.8),
-             [p([(b, 12.5, False, NAVY)], bullet=True, space_after=5, line_spacing=1.0) for b in bullets])
-
-    # central PDSA wheel
-    cx, cy = SLIDE_W // 2, top + row_h + row_gap // 2
-    d = Inches(2.4)
-    wheel = [("P", 180, 270, NAVY), ("D", 270, 360, BLUE), ("S", 0, 90, MID), ("A", 90, 180, BLUE)]
-    import math
-    for letter, a0, a1, color in wheel:
-        arc = rect(s, cx - d // 2, cy - d // 2, d, d, color, shape=MSO_SHAPE.BLOCK_ARC)
-        _set_block_arc(arc, a0 + 5, a1 - 5, 0.2)
-        mid = math.radians((a0 + a1) / 2)
-        r = d / 2 * 0.8
-        lx, ly = int(cx + r * math.cos(mid)), int(cy + r * math.sin(mid))
-        text(s, lx - Inches(0.25), ly - Inches(0.25), Inches(0.5), Inches(0.5),
-             [p([(letter, 18, True, WHITE)], align=PP_ALIGN.CENTER)], anchor=MSO_ANCHOR.MIDDLE, margin=0)
-    # clockwise arrowheads at segment ends
-    for ang in (270, 0, 90, 180):
-        a = math.radians(ang)
-        r = d / 2 * 0.8
-        ax, ay = int(cx + r * math.cos(a)), int(cy + r * math.sin(a))
-        tri = rect(s, ax - Inches(0.13), ay - Inches(0.13), Inches(0.26), Inches(0.26), MID, WHITE,
-                   shape=MSO_SHAPE.ISOSCELES_TRIANGLE)
-        tri.rotation = (ang + 180) % 360  # tip points clockwise
-    inner = Inches(1.3)
-    c = rect(s, cx - inner // 2, cy - inner // 2, inner, inner, LIGHT, shape=MSO_SHAPE.OVAL)
-    text(s, cx - inner // 2, cy - inner // 2, inner, inner, [
-        p([("PDSA", 18, True, NAVY)], align=PP_ALIGN.CENTER),
-        p([("GMP-завод", 9, True, BLUE)], align=PP_ALIGN.CENTER),
-        p([("полного цикла", 9, False, NAVY)], align=PP_ALIGN.CENTER),
+    # модель разделения ролей
+    fy, fh, aw = Inches(2.13), Inches(1.15), Inches(0.45)
+    w1, w2 = Inches(4.35), Inches(4.1)
+    w3 = W - w1 - w2 - 2 * aw
+    x1 = L
+    x2 = x1 + w1 + aw
+    x3 = x2 + w2 + aw
+    flow_box(s, x1, fy, w1, fh, "Научный дивизион Росатома", "Наука и сырьё",
+             "НИОКР, наработка радионуклидов на реакторах и циклотронах, разработка технологий",
+             footer="НИФХИ · НИИТФА · ФЭИ · ИРМ · НИИАР · Радиевый институт")
+    flow_box(s, x2, fy, w2, fh, "Площадка АО «Изотоп»", "Производство и рынок",
+             "Серийный выпуск, качество, логистика, регистрация, продажи и сервис",
+             dark=True,
+             footer="GMP · ISO 13485 · GDP · GLP · ОСПОРБ / НРБ")
+    flow_box(s, x3, fy, w3, fh, "Потребители", "Рынок",
+             "Госзаказ Минздрава, онкоцентры и центры ядерной медицины, экспорт")
+    for ax in (x1 + w1, x2 + w2):
+        rect(s, ax + Inches(0.06), fy + fh // 2 - Inches(0.2), aw - Inches(0.12), Inches(0.4),
+             MID, shape=MSO_SHAPE.RIGHT_ARROW)
+    # обратная связь
+    by = fy + fh + Inches(0.07)
+    fb = rect(s, x1 + Inches(0.6), by, x3 + w3 - x1 - Inches(1.2), Inches(0.32),
+              RGBColor(0xD6, 0xE3, 0xF2), shape=MSO_SHAPE.LEFT_ARROW)
+    fb.adjustments[0] = 0.62
+    fb.adjustments[1] = 0.9
+    text(s, x1 + Inches(1.2), by, x3 + w3 - x1 - Inches(2.4), Inches(0.32), [
+        p([("Обратная связь: рыночный запрос и real-world evidence → техзадания на НИОКР "
+            "(цикл PDSA: Plan — Do — Study — Act)", 10, True, NAVY)], align=PP_ALIGN.CENTER),
     ], anchor=MSO_ANCHOR.MIDDLE, margin=0)
-    text(s, cx - Inches(1.4), top - Inches(0.05), Inches(2.8), Inches(0.5), [
-        p([("Сквозной цикл", 11, True, NAVY)], align=PP_ALIGN.CENTER),
-        p([("ЖЦ РФП и медизделий с РВ", 10, False, GREY)], align=PP_ALIGN.CENTER),
-    ], margin=0)
-    text(s, cx - Inches(1.4), top + 2 * row_h + row_gap - Inches(0.5), Inches(2.8), Inches(0.5), [
-        p([("Непрерывное улучшение", 11, True, NAVY)], align=PP_ALIGN.CENTER),
-        p([("GLP · GMP · GDP · ISO 13485 · ОСПОРБ/НРБ", 9, False, GREY)], align=PP_ALIGN.CENTER),
-    ], margin=0)
-    return s
 
+    # три колонки
+    cy, ch, gap = Inches(3.72), Inches(2.38), Inches(0.22)
+    cw = int((W - 2 * gap) / 3)
+    card(s, L, cy, cw, ch, "Предпосылки", [
+        "Институты загружены серийным выпуском и непрофильными задачами",
+        "Научная инфраструктура не рассчитана на GMP-серию и рыночные объёмы",
+        "Нет единого рыночного окна: продукт, регистрация, логистика, продажи",
+        "Растущий спрос на РФЛП и задача технологического суверенитета",
+    ])
+    card(s, L + cw + gap, cy, cw, ch, "Что размещается на площадке", [
+        "GMP-производство РФЛП по технологиям институтов",
+        "Выпуск нерадиоактивных частей и наборов",
+        "Упаковочные комплекты типа А для РФЛП",
+        "Спецтранспорт (РВ и темп. режим), авто/авиа доставка",
+        "Контроль качества, регистрация, фармаконадзор",
+    ])
+    card(s, L + 2 * (cw + gap), cy, cw, ch, "Эффекты", [
+        "Институты: снятие доп. нагрузки, фокус на науке и наработке изотопов",
+        "Росатом: единое рыночное окно и быстрый вывод продуктов на рынок",
+        "Государство и пациенты: суверенитет и доступность ядерной медицины",
+        "Экспорт через канал зарубежных проектов Росатома",
+    ])
 
-# ---------------------------------------------------------------- slide 3
-def _cell(cell, runs, fill, align=PP_ALIGN.LEFT):
-    cell.fill.solid()
-    cell.fill.fore_color.rgb = fill
-    cell.vertical_anchor = MSO_ANCHOR.MIDDLE
-    cell.margin_left = cell.margin_right = Inches(0.12)
-    cell.margin_top = cell.margin_bottom = Inches(0.04)
-    tf = cell.text_frame
-    tf.word_wrap = True
-    para = tf.paragraphs[0]
-    para.alignment = align
-    for t, size, bold, color in runs:
-        r = para.add_run()
-        r.text = t
-        _font(r, size, bold, color)
-
-
-def slide_economics(prs):
-    s = prs.slides.add_slide(prs.slide_layouts[6])
-    header(s, "Экономика проекта и решение ИК",
-           "Ключевые параметры инвестиций, источники спроса и господдержки, риски и их митигирование", num=3)
-
-    lx, ly, lw = Inches(0.45), Inches(1.6), Inches(7.35)
-    section_label(s, lx, ly, lw, "Экономика и запрашиваемое решение")
-    rows = [
-        ("Инвестиции", [("X млрд руб.", 13, True, BLUE), ("  (капекс / НИОКР)", 12, False, NAVY)]),
-        ("Выручка к 2030", [("X млрд руб.", 13, True, BLUE), ("  (экспорт X%)", 12, False, NAVY)]),
-        ("IRR / окупаемость", [("IRR X%", 13, True, BLUE), ("  /  окупаемость X лет", 12, False, NAVY)]),
-        ("Оффтейк", [("Госзаказ Минздрава + региональные онкоцентры", 12, False, NAVY)]),
-        ("Господдержка", [("СЗПК, субсидии Минпромторга, ФРП", 12, False, NAVY)]),
-    ]
-    tbl_y = ly + Inches(0.55)
-    row_h = Inches(0.56)
-    gt = s.shapes.add_table(len(rows) + 1, 2, lx, tbl_y, lw, row_h * (len(rows) + 1))
-    tbl = gt.table
-    tbl.first_row = True
-    tbl.horz_banding = False
-    tbl.columns[0].width = Inches(2.3)
-    tbl.columns[1].width = lw - Inches(2.3)
-    _cell(tbl.cell(0, 0), [("Параметр", 12, True, WHITE)], NAVY)
-    _cell(tbl.cell(0, 1), [("Значение", 12, True, WHITE)], NAVY)
-    for i, (k, v) in enumerate(rows, start=1):
-        fill = LIGHT if i % 2 else WHITE
-        _cell(tbl.cell(i, 0), [(k, 12, True, NAVY)], fill)
-        _cell(tbl.cell(i, 1), v, fill)
-    for r in tbl.rows:
-        r.height = row_h
-
-    # risks
-    rx, rw = Inches(8.1), Inches(4.78)
-    section_label(s, rx, ly, rw, "Риски и митигирование")
-    risks = [
-        ("Санкционные", "Собственная реакторная и циклотронная база"),
-        ("Регуляторные", "Опережающий R&D и ускоренные процедуры Минздрава"),
-        ("Рыночные", "Ценовое преимущество и гарантированный госзаказ"),
-    ]
-    ry = ly + Inches(0.55)
-    rh, rg = Inches(1.0), Inches(0.12)
-    for i, (risk, mit) in enumerate(risks):
-        y = ry + i * (rh + rg)
-        rect(s, rx, y, rw, rh, WHITE, LINE)
-        rect(s, rx, y, Inches(0.09), rh, BLUE)
-        text(s, rx + Inches(0.22), y + Inches(0.08), rw - Inches(0.35), Inches(0.36),
-             [p([(risk + " риски", 13, True, NAVY)])], anchor=MSO_ANCHOR.MIDDLE)
-        text(s, rx + Inches(0.22), y + Inches(0.44), rw - Inches(0.35), Inches(0.5),
-             [p([(mit, 12.5, False, NAVY)], bullet=True, bullet_char="→", bullet_indent=18)], anchor=MSO_ANCHOR.TOP)
-
-    # decision bar
-    dy = Inches(5.75)
-    rect(s, Inches(0.45), dy, Inches(12.43), Inches(1.05), NAVY)
-    rect(s, Inches(0.45), dy, Inches(0.12), Inches(1.05), MID)
-    text(s, Inches(0.8), dy, Inches(11.9), Inches(1.05), [
-        p([("ЗАПРАШИВАЕМОЕ РЕШЕНИЕ ИК", 12, True, RGBColor(0x8F, 0xB8, 0xE6))], space_after=3),
-        p([("Одобрить инвестиции X млрд руб.;  контрольная точка — выход на проектную мощность к 20XX",
-            17, True, WHITE)]),
+    # предлагаемое решение
+    dy, dh = Inches(6.2), Inches(0.75)
+    rect(s, L, dy, W, dh, NAVY)
+    rect(s, L, dy, Inches(0.12), dh, MID)
+    text(s, L + Inches(0.3), dy, Inches(2.3), dh, [
+        p([("ПРЕДЛАГАЕМОЕ", 11, True, RGBColor(0x8F, 0xB8, 0xE6))]),
+        p([("РЕШЕНИЕ", 11, True, RGBColor(0x8F, 0xB8, 0xE6))]),
+    ], anchor=MSO_ANCHOR.MIDDLE)
+    text(s, L + Inches(2.35), dy, W - Inches(2.5), dh, [
+        p([("Одобрить концепцию и поручить: ", 12, True, WHITE),
+           ("1) сформировать с институтами перечень производств для размещения на площадке; "
+            "2) проработать модель взаимодействия и передачи технологий; "
+            "3) подготовить ТЭО и финансовую модель", 12, False, WHITE)]),
     ], anchor=MSO_ANCHOR.MIDDLE)
     return s
 
@@ -361,10 +247,8 @@ def main():
     prs = Presentation()
     prs.slide_width, prs.slide_height = SLIDE_W, SLIDE_H
     prs.core_properties.title = PROJECT
-    prs.core_properties.subject = "Материалы к инвестиционному комитету Госкорпорации «Росатом»"
-    slide_strategy(prs)
-    slide_pdsa(prs)
-    slide_economics(prs)
+    prs.core_properties.subject = "Проект развития Госкорпорации «Росатом»: площадка АО «Изотоп»"
+    slide_development(prs)
     prs.save(OUT)
     print(OUT)
 
