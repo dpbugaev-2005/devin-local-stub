@@ -189,10 +189,10 @@ def slide_development(prs):
              "НИОКР, наработка радионуклидов на реакторах и циклотронах, разработка технологий",
              footer="НИФХИ · НИИТФА · ФЭИ · ИРМ · НИИАР · Радиевый институт")
     flow_box(s, x2, fy, w2, fh, "Площадка АО «Изотоп»", "Производство и рынок",
-             "Горячая и холодная части производства, качество, логистика, продажи",
+             "Трансфер технологий, серия (горячая и холодная части), логистика, продажи",
              dark=True,
-             footer="GMP · ISO 13485 · GDP · GLP · ОСПОРБ / НРБ")
-    flow_box(s, x3, fy, w3, fh, "Потребители", "Рынок",
+             footer="GMP · ISO 13485 · GDP · ОСПОРБ / НРБ")
+    flow_box(s, x3, fy, w3, fh, "Потребители · клиники", "Рынок",
              "Госзаказ Минздрава, онкоцентры и центры ядерной медицины, экспорт")
     for ax in (x1 + w1, x2 + w2):
         rect(s, ax + Inches(0.06), fy + fh // 2 - Inches(0.2), aw - Inches(0.12), Inches(0.4),
@@ -219,14 +219,14 @@ def slide_development(prs):
     ])
     card(s, L + cw + gap, cy, cw, ch, "Что размещается на площадке", [
         ("Горячая часть: ", "производство РФЛП (GMP) и загрузка РВ в изделия"),
-        ("Холодная часть: ", "нерадиоактивные части, наборы, упаковка типа А"),
-        ("Логистика: ", "спецтранспорт (РВ и темп. режим), авто/авиа доставка"),
+        ("Холодная часть: ", "нерадиоактивные компоненты, наборы, упаковка типа А"),
+        ("Логистика: ", "спецтранспорт, авто- и авиадоставка с учётом полураспада"),
         ("Качество: ", "контроль, регистрация, фармаконадзор"),
     ])
     card(s, L + 2 * (cw + gap), cy, cw, ch, "Эффекты", [
         "Институты: снятие доп. нагрузки, фокус на науке и наработке изотопов",
         "Росатом: единое рыночное окно и быстрый вывод продуктов на рынок",
-        "Государство и пациенты: суверенитет и доступность ядерной медицины",
+        "Государство и пациенты: вклад в суверенитет и доступность ядерной медицины",
         "Экспорт через канал зарубежных проектов Росатома",
     ])
 
@@ -257,17 +257,19 @@ def chip(slide, x, y, w, h, label, size=10):
     return c
 
 
-def soft_card(slide, x, y, w, h, title, body, top_pad=Inches(0.15), bullets=True, size=12):
+def soft_card(slide, x, y, w, h, letter, title, owner, body, top_pad=Inches(0.12), size=11.5):
     rect(slide, x, y, w, h, RGBColor(0xF5, 0xF8, 0xFC), LINE, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.08)
-    text(slide, x + Inches(0.2), y + top_pad, w - Inches(0.4), Inches(0.55),
-         [p([(title, 13, True, NAVY)], align=PP_ALIGN.CENTER)], anchor=MSO_ANCHOR.MIDDLE)
+    head = [p([(letter + " · ", 12.5, True, BLUE), (title, 12.5, True, NAVY)], align=PP_ALIGN.CENTER),
+            p([("Исполнитель: " + owner, 10, False, GREY)], align=PP_ALIGN.CENTER, space_before=2)]
+    head_h = Inches(0.8) if "\n" in title else Inches(0.6)
+    text(slide, x + Inches(0.15), y + top_pad, w - Inches(0.3), head_h, head, anchor=MSO_ANCHOR.TOP, margin=0)
     paras = []
-    for b in body:
-        runs = [(b[0], size, True, BLUE), (b[1], size, False, NAVY)] if isinstance(b, tuple) \
-            else [(b, size, False, NAVY)]
-        paras.append(p(runs, bullet=bullets, bullet_char="➢", bullet_indent=16, space_after=2))
-    text(slide, x + Inches(0.2), y + top_pad + Inches(0.58), w - Inches(0.35),
-         h - top_pad - Inches(0.65), paras)
+    for item in body:
+        runs = [(item[0], size, True, BLUE), (item[1], size, False, NAVY)] if isinstance(item, tuple) \
+            else [(item, size, False, NAVY)]
+        paras.append(p(runs, bullet=True, bullet_char="➢", bullet_indent=16, space_after=2))
+    text(slide, x + Inches(0.18), y + top_pad + head_h + Inches(0.02), w - Inches(0.3),
+         h - top_pad - head_h - Inches(0.05), paras, margin=0)
 
 
 def picture(slide, name, x, y, w=None, h=None):
@@ -276,52 +278,54 @@ def picture(slide, name, x, y, w=None, h=None):
 
 def slide_original_layout(prs):
     s = prs.slides.add_slide(prs.slide_layouts[6])
-    text(s, Inches(0.4), Inches(0.25), Inches(9.6), Inches(0.85), [
-        p([("АО «Изотоп» — центр компетенций полного жизненного цикла "
-            "РФЛП и медицинских изделий, содержащих РВ", 22, True, NAVY)], line_spacing=0.95)])
+    text(s, Inches(0.4), Inches(0.25), Inches(9.8), Inches(0.85), [
+        p([("АО «Изотоп» — производственная и рыночная площадка "
+            "Научного дивизиона Росатома", 22, True, NAVY)], line_spacing=0.95)])
     picture(s, "rosatom.png", Inches(10.35), Inches(0.33), w=Inches(2.6))
-    text(s, Inches(0.4), Inches(1.08), Inches(12.5), Inches(0.5), [
-        p([("Обеспечение 100% суверенитета в ядерной медицине, повышение доступности "
-            "высокотехнологичной помощи и увеличение продолжительности жизни граждан",
+    text(s, Inches(0.4), Inches(1.06), Inches(12.5), Inches(0.5), [
+        p([("Полный жизненный цикл РФЛП и медизделий с РВ: вклад в технологический суверенитет, "
+            "доступность высокотехнологичной помощи и продолжительность жизни граждан",
             13, True, BLUE)])])
     text(s, Inches(0.4), Inches(1.6), Inches(12.5), Inches(0.5), [
         p([("Проект развития: площадка АО «Изотоп» дополняет предприятия Научного дивизиона Росатома,",
             12, True, NAVY)], align=PP_ALIGN.CENTER),
-        p([("снимает с них дополнительную нагрузку и берёт на себя производство и рыночность",
+        p([("снимает с них дополнительную нагрузку и берёт на себя серийное производство и коммерциализацию",
             12, True, NAVY)], align=PP_ALIGN.CENTER),
     ], margin=0)
 
     # left column
     lx, lw = Inches(0.3), Inches(3.7)
-    soft_card(s, lx, Inches(2.3), lw, Inches(2.2), "Госзаказ, ликвидация дефицита\nи опережающий R&D", [
-        "Анализ потребностей рынка",
-        "Разработка и проектирование (институты Научного дивизиона)",
-        "Проектирование сквозного жизненного цикла",
-    ], size=11.5)
-    chip(s, lx, Inches(4.25), Inches(1.0), Inches(0.42), "GLP")
-    soft_card(s, lx, Inches(4.8), lw, Inches(1.85), "Оптимизация и экспорт", [
+    soft_card(s, lx, Inches(2.3), lw, Inches(2.25), "P", "Госзаказ и опережающий R&D",
+              "институты + «Изотоп»", [
+                  ("«Изотоп»: ", "анализ рынка, госзаказ, закрытие дефицита"),
+                  ("Институты: ", "НИОКР и наработка радионуклидов"),
+                  ("Институты → «Изотоп»: ", "трансфер технологий, масштабирование до серии"),
+              ], size=11)
+    chip(s, lx, Inches(4.33), Inches(1.0), Inches(0.4), "GLP")
+    soft_card(s, lx, Inches(4.85), lw, Inches(1.8), "A", "Оптимизация и экспорт", "«Изотоп» + институты", [
+        "Улучшение продуктов и процессов по данным real-world evidence",
         "Быстрая модернизация продуктовых линеек",
         "Выход на рынки дружественных стран",
-        "Повышение срока и качества жизни",
-    ], top_pad=Inches(0.12))
+    ], size=11)
 
     # right column
     rx, rw = Inches(9.33), Inches(3.7)
-    soft_card(s, rx, Inches(2.5), rw, Inches(2.5), "Производство и логистика", [
+    soft_card(s, rx, Inches(2.5), rw, Inches(2.5), "D", "Производство и логистика", "«Изотоп»", [
         ("Горячая часть: ", "производство РФЛП, загрузка РВ в изделия"),
-        "Выпуск нерадиоактивных частей",
-        "Переоборудование и валидация спецтранспорта (РВ и темп. режим)",
+        ("Холодная часть: ", "нерадиоактивные компоненты, наборы"),
         "Упаковочные комплекты типа А для РФЛП",
-        "АВТО/АВИА доставка",
-    ], top_pad=Inches(0.25), size=11)
+        "Валидация спецтранспорта (РВ, темп. режим)",
+        "Авто- и авиадоставка с учётом полураспада",
+    ], top_pad=Inches(0.25), size=10.5)
     cw_ = int((rw - Inches(0.24)) / 4)
     for i, lab in enumerate(["GMP", "ISO\n13485", "GDP", "ОСПОРБ\n/ НРБ"]):
         chip(s, rx + i * (cw_ + Inches(0.08)), Inches(2.22), cw_, Inches(0.46), lab, size=9.5)
-    soft_card(s, rx, Inches(5.25), rw, Inches(1.4), "Клиническое внедрение и рынок", [
-        "Обратная связь, мониторинг эффективности, фармаконадзор",
-        "Продажи и сервис: единое рыночное окно",
-    ], top_pad=Inches(0.12), size=11)
-    chip(s, rx + rw // 2 - Inches(0.5), Inches(5.07), Inches(1.0), Inches(0.38), "GLP")
+    soft_card(s, rx, Inches(5.22), rw, Inches(1.43), "S", "Клиническое сопровождение",
+              "«Изотоп» + клиники (НМИЦ)", [
+                  "Обратная связь, мониторинг эффективности, фармаконадзор",
+                  "Продажи и сервис: единое рыночное окно",
+              ], top_pad=Inches(0.22), size=10.5)
+    chip(s, rx + rw // 2 - Inches(0.5), Inches(5.04), Inches(1.0), Inches(0.36), "GCP")
 
     # PDSA circle
     cx, cy, r = Inches(6.66), Inches(4.85), Inches(1.75)
@@ -359,7 +363,8 @@ def slide_original_layout(prs):
     fill_paras(ex.text_frame, [p([("!", 24, True, WHITE)], align=PP_ALIGN.CENTER)])
     ex.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
     text(s, Inches(1.4), by, Inches(10.9), bh, [
-        p([("Инфраструктурный фундамент для взрывного роста ядерной медицины", 16, True,
+        p([("Предлагаем: ", 14, True, NAVY),
+           ("одобрить концепцию, поручить сформировать перечень производств и подготовить ТЭО", 14, True,
             RGBColor(0x3A, 0x3F, 0x47))], align=PP_ALIGN.CENTER)], anchor=MSO_ANCHOR.MIDDLE)
     return s
 
